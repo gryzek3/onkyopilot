@@ -23,8 +23,8 @@ byte pwrOn[] = {0x50, 0x57, 0x52, 0x30, 0x31};
 byte pwrOff[] = {0x50, 0x57, 0x52, 0x30, 0x30};
 byte pwrSelectNet[] = {0x53, 0x4C, 0x49, 0x32, 0x39};
 byte pwrSelectTv[] = {0x53, 0x4C, 0x49, 0x32, 0x30};
-byte volume30[] = {0x4D, 0x56, 0x4C, 0x34, 0x38};
-byte volume50[] = {0x4D, 0x56, 0x4C, 0x36, 0x33};
+byte volume30[] = {0x4D, 0x56, 0x4C, 0x34, 0x33};
+byte volume50[] = {0x4D, 0x56, 0x4C, 0x36, 0x36};
 
 const char *ssid = STASSID;
 const char *password = STAPSK;
@@ -70,13 +70,6 @@ void setup()
   Serial.println("IP address: ");
   Serial.println(WiFi.localIP());
   digitalWrite(ledPin, HIGH);
-  buttonState = digitalRead(buttonPinOff);
-  sendDataToOnkyo(pwrOff, NULL, buttonState, "PWR OFF");
-  buttonState = digitalRead(buttonPinNet);
-  sendDataToOnkyo(pwrSelectNet, volume30, buttonState, "Net");
-  buttonState = digitalRead(buttonPinTV);
-  sendDataToOnkyo(pwrSelectTv, volume50, buttonState, "TV");
-  ESP.deepSleep(0); 
 }
 
 void sendCommand(byte *command, WiFiClient *client)
@@ -149,5 +142,10 @@ void sendDataToOnkyo(byte *fistCommand, byte *secondCommand, int buttonState, co
 
 void loop()
 {
-  
+   buttonState = digitalRead(buttonPinOff);
+  sendDataToOnkyo(pwrOff, NULL, buttonState, "PWR OFF");
+  buttonState = digitalRead(buttonPinNet);
+  sendDataToOnkyo(pwrSelectNet, volume30, buttonState, "Net");
+  buttonState = digitalRead(buttonPinTV);
+  sendDataToOnkyo(pwrSelectTv, volume50, buttonState, "TV");
 }
