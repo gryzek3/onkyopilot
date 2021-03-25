@@ -4,6 +4,7 @@
 */
 
 #include <ESP8266WiFi.h>
+#include <ESP8266WebServer.h>
 #include "WifiConfiguration.h"
 #ifndef STASSID
 #define STASSID ""
@@ -24,7 +25,7 @@ byte pwrOff[] = {0x50, 0x57, 0x52, 0x30, 0x30};
 byte pwrSelectNet[] = {0x53, 0x4C, 0x49, 0x32, 0x39};
 byte pwrSelectTv[] = {0x53, 0x4C, 0x49, 0x32, 0x30};
 byte volume30[] = {0x4D, 0x56, 0x4C, 0x34, 0x33};
-byte volume50[] = {0x4D, 0x56, 0x4C, 0x36, 0x36};
+byte volume50[] = {0x4D, 0x56, 0x4C, 0x37, 0x33};
 
 const char *ssid = STASSID;
 const char *password = STAPSK;
@@ -36,6 +37,7 @@ const uint8_t buttonPinNet = 13;
 const uint8_t buttonPinTV = 14;
 const uint8_t ledPin= 2;
 uint8_t buttonState = 0;
+ESP8266WebServer server(80);
 
 void setup()
 {
@@ -70,6 +72,11 @@ void setup()
   Serial.println("IP address: ");
   Serial.println(WiFi.localIP());
   digitalWrite(ledPin, HIGH);
+  server.on("/net", handle_net);
+  server.on("/tv", handle_tv);
+  server.on("/off", handle_off);
+  server.onNotFound(handle_tv);
+  server.begin();
 }
 
 void sendCommand(byte *command, WiFiClient *client)
@@ -142,10 +149,24 @@ void sendDataToOnkyo(byte *fistCommand, byte *secondCommand, int buttonState, co
 
 void loop()
 {
+  server.handleClient();
    buttonState = digitalRead(buttonPinOff);
   sendDataToOnkyo(pwrOff, NULL, buttonState, "PWR OFF");
   buttonState = digitalRead(buttonPinNet);
   sendDataToOnkyo(pwrSelectNet, volume30, buttonState, "Net");
   buttonState = digitalRead(buttonPinTV);
   sendDataToOnkyo(pwrSelectTv, volume50, buttonState, "TV");
+}
+
+void handle_net() {
+  sendDataToOnkyo(pwrSelectNet, volume30, LOW, "Net");
+  server.send(200, "text/html", "NET"); 
+}
+void handle_tv() {
+  sendDataToOnkyo(pwrSelectTv, volume50, LOW, "TV");
+  server.send(200, "text/html", "TV"); 
+}
+void handle_off() {
+  sendDataToOnkyo(pwrOff, NULL, LOW, "PWR OFF");
+  server.send(200, "text/html", "OFF"); 
 }
