@@ -32,20 +32,13 @@ const char *password = STAPSK;
 
 const char *host = STAONKOYOHOSTIP;
 const uint16_t port = 60128;
-const uint8_t buttonPinOff = 12;
-const uint8_t buttonPinNet = 13;
-const uint8_t buttonPinTV = 14;
+
 const uint8_t ledPin= 2;
-uint8_t buttonState = 0;
 ESP8266WebServer server(80);
 
 void setup()
 {
   pinMode(ledPin, OUTPUT);
-  pinMode(buttonPinOff, INPUT_PULLUP);
-  pinMode(buttonPinNet, INPUT_PULLUP );
-  pinMode(buttonPinTV, INPUT_PULLUP );
-
   Serial.begin(115200);
 
   // We start by connecting to a WiFi network
@@ -75,7 +68,6 @@ void setup()
   server.on("/net", handle_net);
   server.on("/tv", handle_tv);
   server.on("/off", handle_off);
-  server.onNotFound(handle_tv);
   server.begin();
 }
 
@@ -114,12 +106,8 @@ void sendCommand(byte *command, WiFiClient *client)
   }
 }
 
-void sendDataToOnkyo(byte *fistCommand, byte *secondCommand, int buttonState, const char *text)
+void sendDataToOnkyo(byte *fistCommand, byte *secondCommand, const char *text)
 {
-  if (buttonState == HIGH)
-  {
-    return;
-  }
   digitalWrite(ledPin, LOW);
 
   Serial.print(text);
@@ -150,23 +138,17 @@ void sendDataToOnkyo(byte *fistCommand, byte *secondCommand, int buttonState, co
 void loop()
 {
   server.handleClient();
-   buttonState = digitalRead(buttonPinOff);
-  sendDataToOnkyo(pwrOff, NULL, buttonState, "PWR OFF");
-  buttonState = digitalRead(buttonPinNet);
-  sendDataToOnkyo(pwrSelectNet, volume30, buttonState, "Net");
-  buttonState = digitalRead(buttonPinTV);
-  sendDataToOnkyo(pwrSelectTv, volume50, buttonState, "TV");
 }
 
 void handle_net() {
-  sendDataToOnkyo(pwrSelectNet, volume30, LOW, "Net");
+  sendDataToOnkyo(pwrSelectNet, volume30,  "Net");
   server.send(200, "text/html", "NET"); 
 }
 void handle_tv() {
-  sendDataToOnkyo(pwrSelectTv, volume50, LOW, "TV");
+  sendDataToOnkyo(pwrSelectTv, volume50, "TV");
   server.send(200, "text/html", "TV"); 
 }
 void handle_off() {
-  sendDataToOnkyo(pwrOff, NULL, LOW, "PWR OFF");
+  sendDataToOnkyo(pwrOff, NULL,  "PWR OFF");
   server.send(200, "text/html", "OFF"); 
 }
