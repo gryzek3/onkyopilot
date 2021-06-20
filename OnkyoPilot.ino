@@ -73,6 +73,7 @@ void setup()
   Serial.println(WiFi.localIP());
   digitalWrite(ledPin, HIGH);
   server.on("/net", handle_net);
+  server.on("/", handle_index);
   server.on("/tv", handle_tv);
   server.on("/tvoff", handle_tv_off);
   server.on("/off", handle_off);
@@ -152,30 +153,38 @@ void loop()
 void handle_source()
 {
   irsend.sendNEC(sourceCode, 32);
-
-  Serial.println("Source");
-  server.send(200, "text/html", "Source");
+  sendResponseToClient("source");
+}
+void handle_index()
+{
+  sendResponseToClient("index");
 }
 void handle_net()
 {
   sendDataToOnkyo(pwrSelectNet, volume30, "Net");
-  server.send(200, "text/html", "NET");
+  sendResponseToClient("NET");
 }
 void handle_tv()
 {
-  sendDataToOnkyo(pwrSelectTv, volume50, "TV");
-  server.send(200, "text/html", "TV");
   irsend.sendNEC(onCode, 32);
+  sendDataToOnkyo(pwrSelectTv, volume50, "TV");
+  sendResponseToClient("TV on");
 }
+
 void handle_off()
 {
-  sendDataToOnkyo(pwrOff, NULL, "PWR OFF");
-  server.send(200, "text/html", "OFF");
   irsend.sendNEC(onCode, 32);
+  sendDataToOnkyo(pwrOff, NULL, "PWR OFF");
+  sendResponseToClient("OFF ALL");
 }
 void handle_tv_off()
 {
   irsend.sendNEC(onCode, 32);
-  server.send(200, "text/html", "TV OFF");
-  Serial.println("TV OFF");
+  sendResponseToClient("TV OFF");
+}
+
+void sendResponseToClient(char *executedAction)
+{
+  char *pageContent = "<ul><li><a href =\"net\">NET</a></li><li><a href =\"tv\">TV</a></li><li><a href =\"off\">OFF</a></li><li><a href =\"tvoff\">TV OFF/ON</a></li><li><a href =\"source\">Change SOURCE</a></li></ul>";
+  server.send(200, "text/html", pageContent);
 }
