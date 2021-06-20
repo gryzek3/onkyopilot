@@ -6,6 +6,9 @@
 #include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
 #include "WifiConfiguration.h"
+#include <IRremoteESP8266.h>
+#include <IRsend.h>
+
 #ifndef STASSID
 #define STASSID ""
 #define STAPSK ""
@@ -27,20 +30,24 @@ byte pwrSelectTv[] = {0x53, 0x4C, 0x49, 0x32, 0x30};
 byte volume30[] = {0x4D, 0x56, 0x4C, 0x34, 0x33};
 byte volume50[] = {0x4D, 0x56, 0x4C, 0x37, 0x33};
 
+const uint32_t sourceCode = 0xE0E0807F;
+const uint32_t onCode = 0xE0E040BF;
 const char *ssid = STASSID;
 const char *password = STAPSK;
 
 const char *host = STAONKOYOHOSTIP;
 const uint16_t port = 60128;
 
-const uint8_t ledPin= 2;
+const uint8_t ledPin = 2;
 ESP8266WebServer server(80);
+
+IRsend irsend(4); // An IR LED is controlled by GPIO pin 4 (D2)
 
 void setup()
 {
   pinMode(ledPin, OUTPUT);
   Serial.begin(115200);
-
+  irsend.begin();
   // We start by connecting to a WiFi network
 
   Serial.println();
@@ -67,7 +74,9 @@ void setup()
   digitalWrite(ledPin, HIGH);
   server.on("/net", handle_net);
   server.on("/tv", handle_tv);
+  server.on("/tvoff", handle_tv_off);
   server.on("/off", handle_off);
+  server.on("/source", handle_source);
   server.begin();
 }
 
@@ -140,15 +149,33 @@ void loop()
   server.handleClient();
 }
 
-void handle_net() {
-  sendDataToOnkyo(pwrSelectNet, volume30,  "Net");
-  server.send(200, "text/html", "NET"); 
+void handle_source()
+{
+  irsend.sendNEC(sourceCode, 32);
+
+  Serial.println("Source");
+  server.send(200, "text/html", "Source");
 }
-void handle_tv() {
+void handle_net()
+{
+  sendDataToOnkyo(pwrSelectNet, volume30, "Net");
+  server.send(200, "text/html", "NET");
+}
+void handle_tv()
+{
   sendDataToOnkyo(pwrSelectTv, volume50, "TV");
-  server.send(200, "text/html", "TV"); 
+  server.send(200, "text/html", "TV");
+  irsend.sendNEC(onCode, 32);
 }
-void handle_off() {
-  sendDataToOnkyo(pwrOff, NULL,  "PWR OFF");
-  server.send(200, "text/html", "OFF"); 
+void handle_off()
+{
+  sendDataToOnkyo(pwrOff, NULL, "PWR OFF");
+  server.send(200, "text/html", "OFF");
+  irsend.sendNEC(onCode, 32);
+}
+void handle_tv_off()
+{
+  irsend.sendNEC(onCode, 32);
+  server.send(200, "text/html", "TV OFF");
+  Serial.println("TV OFF");
 }
