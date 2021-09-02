@@ -27,8 +27,10 @@ byte pwrOn[] = {0x50, 0x57, 0x52, 0x30, 0x31};
 byte pwrOff[] = {0x50, 0x57, 0x52, 0x30, 0x30};
 byte pwrSelectNet[] = {0x53, 0x4C, 0x49, 0x32, 0x39};
 byte pwrSelectTv[] = {0x53, 0x4C, 0x49, 0x32, 0x30};
-byte volume30[] = {0x4D, 0x56, 0x4C, 0x34, 0x33};
-byte volume50[] = {0x4D, 0x56, 0x4C, 0x37, 0x33};
+byte volume30[] = {0x4D, 0x56, 0x4C, 0x34, 0x30};
+byte volume50[] = {0x4D, 0x56, 0x4C, 0x37, 0x30};
+byte volumeUp[] = {0x4D, 0x56, 0x4C, 0x55, 0x50};
+byte volumeDown[] = {0x4D, 0x56, 0x4C, 0x44, 0x4F, 0x57, 0x4E};
 
 const uint32_t sourceCode = 0xE0E0807F;
 const uint32_t onCode = 0xE0E040BF;
@@ -77,6 +79,9 @@ void setup()
   server.on("/tv", handle_tv);
   server.on("/tvoff", handle_tv_off);
   server.on("/off", handle_off);
+  server.on("/netoff", handle_netoff);
+  server.on("/netvolup", handle_netVolumeUp);
+  server.on("/netvoldown",  handle_netVolumeDown);
   server.on("/source", handle_source);
   server.begin();
 }
@@ -176,6 +181,21 @@ void handle_off()
   irsend.sendNEC(onCode, 32);
   sendDataToOnkyo(pwrOff, NULL, "PWR OFF");
   sendResponseToClient("OFF ALL");
+}
+void handle_netoff()
+{
+  sendDataToOnkyo(pwrOff, NULL, "PWR OFF");
+  sendResponseToClient("NET OFF");
+}
+void handle_netVolumeUp()
+{
+  sendDataToOnkyo(volumeUp, NULL, "Volume UP");
+  sendResponseToClient("NET Volume UP");
+}
+void handle_netVolumeDown()
+{
+  sendDataToOnkyo(volumeDown, NULL, "Volume DOWN");
+  sendResponseToClient("NET Volume Down");
 }
 void handle_tv_off()
 {

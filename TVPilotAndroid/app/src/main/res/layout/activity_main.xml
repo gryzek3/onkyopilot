@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity">
+
+    <TableLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" >
+
+            <Button
+                android:id="@+id/buttonAppNet"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/net"
+                android:onClick="buttonNetOnClick" />
+
+            <Button
+                android:id="@+id/buttonAppNetOff"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="buttonNetOffClick"
+                android:text="@string/net_off" />
+
+            <Button
+                android:id="@+id/buttonAppNetVolUp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="buttonNetVolUpClick"
+                android:text="@string/volume_up" />
+
+            <Button
+                android:id="@+id/buttonAppNetVolDown"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="buttonNetVolDownClick"
+                android:text="@string/volume_down" />
+
+        </TableRow>
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" >
+
+            <Button
+                android:id="@+id/buttonTv"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/tv"
+                android:onClick="buttonTvOnClick"
+                 />
+
+            <Button
+                android:id="@+id/buttonAppTvOff"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/tv_off"
+                android:onClick="buttonTvOffOnClick" />
+
+            <Button
+                android:id="@+id/buttonAppChangeTvSource"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="buttonChangeTvSourceOnClick"
+                android:text="@string/change_source"
+                 />
+        </TableRow>
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" >
+
+            <Button
+                android:id="@+id/buttonAppALlOff"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="buttonAllOffOnClick"
+                android:text="@string/off" />
+        </TableRow>
+
+    </TableLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

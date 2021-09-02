@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">TVPilot</string>
+    <string name="appwidget_text">EXAMPLE</string>
+    <string name="add_widget">Add widget</string>
+    <string name="app_widget_description">This is an app widget description</string>
+    <string name="net">NET</string>
+    <string name="tv">TV</string>
+    <string name="tv_off">TV Off</string>
+    <string name="net_off">NET Off</string>
+    <string name="change_source">Change Source</string>
+    <string name="off">Off</string>
+    <string name="volume_up">V Up</string>
+    <string name="volume_down">V Down</string>
+</resources>

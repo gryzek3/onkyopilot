@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="net">NET</string>
+    <string name="tv">TV</string>
+    <string name="tv_off">TV Off</string>
+    <string name="net_off">NET Off</string>
+    <string name="change_source">Change Source</string>
+    <string name="off">Off</string>
+    <string name="volume_up">V Up</string>
+    <string name="volume_down">V Down</string>
+</resources>

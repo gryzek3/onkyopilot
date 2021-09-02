@@ -1,0 +1,39 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    style="@style/Widget.TVPilot.AppWidget.Container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="horizontal"
+    android:theme="@style/Theme.TVPilot.AppWidgetContainer">
+        <Button
+            android:id="@+id/buttonNet"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/net"
+            style="?android:attr/buttonBarButtonStyle" />
+
+        <Button
+            android:id="@+id/buttonTV"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/tv"
+            style="?android:attr/buttonBarButtonStyle" />
+
+        <Button
+            android:id="@+id/buttonTVOff"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/tv_off"
+            style="?android:attr/buttonBarButtonStyle" />
+
+        <Button
+            android:id="@+id/buttonNetOff"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/net_off"
+            style="?android:attr/buttonBarButtonStyle" />
+
+</LinearLayout>
