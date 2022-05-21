@@ -1,3 +1,5 @@
+
+
 /*
     This sketch establishes a TCP connection to a "quote of the day" service.
     It sends a "hello" message, and then prints received data.
@@ -8,6 +10,8 @@
 #include "WifiConfiguration.h"
 #include <IRremoteESP8266.h>
 #include <IRsend.h>
+#include <NTPClient.h>
+#include <WiFiUdp.h>
 
 #ifndef STASSID
 #define STASSID ""
@@ -17,11 +21,11 @@
 byte message[] = {
     0x49, 0x53, 0x43, 0x50,
     0x00, 0x00, 0x00, 0x10,
-    0x00, 0x00, 0x00, 0x08, //replace last with length
+    0x00, 0x00, 0x00, 0x08, // replace last with length
     0x01, 0x00, 0x00, 0x00,
     0x21, 0x31, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x0D //49
-                           //Add data + EOF here
+    0x00, 0x00, 0x00, 0x0D // 49
+                           // Add data + EOF here
 };
 byte pwrOn[] = {0x50, 0x57, 0x52, 0x30, 0x31};
 byte pwrOff[] = {0x50, 0x57, 0x52, 0x30, 0x30};
@@ -40,14 +44,29 @@ const char *password = STAPSK;
 const char *host = STAONKOYOHOSTIP;
 const uint16_t port = 60128;
 
-const uint8_t ledPin = 2;
+const uint8_t ledPin = 2;    // GPIO 2 (D4)
+const uint8_t pump1Pin = 16; // GPIO 16  (D0)
+const uint8_t pump2Pin = 5;  // GPIO 5  (D1)
+IRsend irsend(4);            // GPIO 4 (D2)
 ESP8266WebServer server(80);
 
-IRsend irsend(4); // An IR LED is controlled by GPIO pin 4 (D2)
-
+const long utcOffsetInSeconds = 3600 * 2;
+WiFiUDP ntpUDP;
+NTPClient timeClient(ntpUDP, "pool.ntp.org", utcOffsetInSeconds);
+long skipCount = 0;
+bool isWateringOngoing = false;
+bool isPump1On = false;
+bool isPump2On = false;
+const int wateringHour = 19;
+const int wateringStartMinute = 11;
+const int waretringTimeInMinutes = 2;
 void setup()
 {
   pinMode(ledPin, OUTPUT);
+  pinMode(pump1Pin, OUTPUT);
+  pinMode(pump2Pin, OUTPUT);
+  digitalWrite(pump1Pin, LOW);
+  digitalWrite(pump2Pin, LOW);
   Serial.begin(115200);
   irsend.begin();
   // We start by connecting to a WiFi network
@@ -81,9 +100,12 @@ void setup()
   server.on("/off", handle_off);
   server.on("/netoff", handle_netoff);
   server.on("/netvolup", handle_netVolumeUp);
-  server.on("/netvoldown",  handle_netVolumeDown);
+  server.on("/netvoldown", handle_netVolumeDown);
   server.on("/source", handle_source);
+  server.on("/pumpOn", handle_pumpOn);
+  server.on("/pumpOff", handle_pumpOff);
   server.begin();
+  timeClient.begin();
 }
 
 void sendCommand(byte *command, WiFiClient *client)
@@ -149,10 +171,54 @@ void sendDataToOnkyo(byte *fistCommand, byte *secondCommand, const char *text)
   delay(1000);
   digitalWrite(ledPin, HIGH);
 }
-
+void watering()
+{
+  timeClient.update();
+  int hour = timeClient.getHours();
+  int minute = timeClient.getMinutes();
+  if (hour != wateringHour)
+  {
+    return;
+  }
+  if (minute == wateringStartMinute && isWateringOngoing == false)
+  {
+    isWateringOngoing = true;
+    isPump1On = true;
+    digitalWrite(pump1Pin, HIGH);
+    Serial.println("Watering pump 1 ON");
+    return;
+  }
+  if (minute == wateringStartMinute + waretringTimeInMinutes && isPump1On)
+  {
+    isPump1On = false;
+    digitalWrite(pump1Pin, LOW);
+    delay(500);
+    digitalWrite(pump2Pin, HIGH);
+    Serial.println("Watering pump 1 OFF");
+    Serial.println("Watering pump 2 ON");
+    isPump2On = true;
+    return;
+  }
+  if (minute == wateringStartMinute + (2 * waretringTimeInMinutes) && isPump2On)
+  {
+    isPump2On = false;
+    digitalWrite(pump2Pin, LOW);
+    Serial.println("Watering pump 2 OFF");
+    delay(500);
+    isWateringOngoing == false;
+  }
+}
 void loop()
 {
   server.handleClient();
+
+  if (skipCount < 10000 && isWateringOngoing == false)
+  {
+    skipCount += 1;
+    return;
+  }
+  skipCount = 0;
+  watering();
 }
 
 void handle_source()
@@ -202,9 +268,37 @@ void handle_tv_off()
   irsend.sendNEC(onCode, 32);
   sendResponseToClient("TV OFF");
 }
-
+void handle_pump(int state)
+{
+  String pumpId = server.arg("pumpId");
+  digitalWrite(ledPin, HIGH);
+  if (pumpId == "1")
+  {
+    digitalWrite(pump1Pin, state);
+  }
+  else if (pumpId == "2")
+  {
+    digitalWrite(pump2Pin, state);
+  }
+  Serial.print("Watering pump ");
+  Serial.print(pumpId);
+  Serial.print(" state ");
+  Serial.print(state ? "ON" : "OFF");
+  Serial.println("");
+  delay(500);
+  digitalWrite(ledPin, LOW);
+  sendResponseToClient("Pump");
+}
+void handle_pumpOff()
+{
+  handle_pump(LOW);
+}
+void handle_pumpOn()
+{
+  handle_pump(HIGH);
+}
 void sendResponseToClient(char *executedAction)
 {
-  char *pageContent = "<ul><li><a href =\"net\">NET</a></li><li><a href =\"tv\">TV</a></li><li><a href =\"off\">OFF</a></li><li><a href =\"tvoff\">TV OFF/ON</a></li><li><a href =\"source\">Change SOURCE</a></li></ul>";
+  char *pageContent = "<ul style=\"font-size: 40Px;zoom: 200%;\"><li><a href =\"net\">NET</a></li><li><a href =\"tv\">TV</a></li><li><a href =\"off\">OFF</a></li><li><a href =\"tvoff\">TV OFF/ON</a></li><li><a href =\"source\">Change SOURCE</a></li><li> </li><li><a href =\"pumpOn?pumpId=1\">PUMP 1 ON</a></li><li><a href =\"pumpOn?pumpId=2\">PUMP 2 ON</a></li><li><a href =\"pumpOff?pumpId=1\">PUMP 1 OFF</a><li><a href =\"pumpOff?pumpId=2\">PUMP 2 OFF</a></li></ul>";
   server.send(200, "text/html", pageContent);
 }
