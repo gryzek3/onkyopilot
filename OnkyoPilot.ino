@@ -50,19 +50,25 @@ const uint8_t pump2Pin = 5;  // GPIO 5  (D1)
 IRsend irsend(4);            // GPIO 4 (D2)
 ESP8266WebServer server(80);
 
-const long utcOffsetInSeconds = 3600 * 2;
+const int utcOffsetInSeconds = 3600 * 2;
 WiFiUDP ntpUDP;
-NTPClient timeClient(ntpUDP, "pool.ntp.org", utcOffsetInSeconds, 30000);
-bool isWateringOngoing = false;
-bool isPump1On = false;
-bool isPump2On = false;
-int wateringHour = 20;
-int wateringStartMinute = 30;
-const int waretringTimeInMinutes = 2;
+NTPClient timeClient(ntpUDP, "pool.ntp.org", utcOffsetInSeconds, 45000);
+short wateringHour = 20;
+short wateringStartMinute = 40;
+const unsigned short waretringTimeInMinutes = 2;
 
-const int pump1StartMinute = wateringStartMinute;
-const int pump2StartMinute = wateringStartMinute + waretringTimeInMinutes;
-const int pump2EndMinute = wateringStartMinute + (2 * waretringTimeInMinutes);
+unsigned short getPump1StartMinute()
+{
+  return wateringStartMinute;
+}
+unsigned short getPump2StartMinute()
+{
+  return wateringStartMinute + waretringTimeInMinutes;
+}
+unsigned short getPump2EndMinute()
+{
+  return wateringStartMinute + (2 * waretringTimeInMinutes);
+}
 
 unsigned long wateringRuns = 0;
 void setup()
@@ -187,32 +193,26 @@ void watering()
   {
     return;
   }
-  if (minute >= pump1StartMinute && minute <= pump2StartMinute && isWateringOngoing == false)
+  if (minute >= getPump1StartMinute() && minute < getPump2StartMinute())
   {
-    isWateringOngoing = true;
-    isPump1On = true;
     digitalWrite(pump1Pin, HIGH);
     Serial.println("Watering pump 1 ON");
     return;
   }
-  if (minute >= pump2StartMinute && minute <= pump2EndMinute && isPump1On)
+  if (minute >= getPump2StartMinute() && minute < getPump2EndMinute())
   {
-    isPump1On = false;
     digitalWrite(pump1Pin, LOW);
-    delay(500);
-    digitalWrite(pump2Pin, HIGH);
     Serial.println("Watering pump 1 OFF");
+    delay(1000);
+    digitalWrite(pump2Pin, HIGH);
     Serial.println("Watering pump 2 ON");
-    isPump2On = true;
     return;
   }
-  if (minute >= pump2EndMinute && isPump2On)
+  if (minute >= getPump2EndMinute())
   {
-    isPump2On = false;
     digitalWrite(pump2Pin, LOW);
     Serial.println("Watering pump 2 OFF");
-    delay(500);
-    isWateringOngoing == false;
+    delay(1000);
     wateringRuns += 1;
   }
 }
@@ -311,19 +311,15 @@ void setWateringHour()
 }
 void sendResponseToClient(char *executedAction)
 {
-  timeClient.update();
   int hour = timeClient.getHours();
   int minute = timeClient.getMinutes();
   String pageContent = "<ul style=\"font-size: 40Px;zoom: 200%;\"><li><a href =\"net\">NET</a></li><li><a href =\"tv\">TV</a></li><li><a href =\"off\">OFF</a></li><li><a href =\"tvoff\">TV OFF/ON</a></li><li><a href =\"source\">Change SOURCE</a></li><li> </li><li><a href =\"pumpOn?pumpId=1\">PUMP 1 ON</a></li><li><a href =\"pumpOn?pumpId=2\">PUMP 2 ON</a></li><li><a href =\"pumpOff?pumpId=1\">PUMP 1 OFF</a><li><a href =\"pumpOff?pumpId=2\">PUMP 2 OFF</a></li></ul>";
   pageContent = pageContent +
-                "<br><br> isWateringOngoing: " + isWateringOngoing +
-                "<br>isPump1On: " + isPump1On +
-                "<br>isPump2On: " + isPump2On +
-                "<br>wateringHour: " + wateringHour + " " + wateringStartMinute +
+                "<br><br>wateringHour: " + wateringHour + " " + wateringStartMinute +
                 "<br>waretringTimeInMinutes: " + waretringTimeInMinutes +
-                "<br>pump1StartMinute: " + pump1StartMinute +
-                "<br>pump2StartMinute: " + pump2StartMinute +
-                "<br>pump2EndMinute: " + pump2EndMinute +
+                "<br>pump1StartMinute: " + getPump1StartMinute() +
+                "<br>pump2StartMinute: " + getPump2StartMinute() +
+                "<br>pump2EndMinute: " + getPump2EndMinute() +
                 "<br>hour: " + hour + ":" + minute +
                 "<br>wateringRuns: " + wateringRuns;
   server.send(200, "text/html", pageContent);
