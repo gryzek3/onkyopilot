@@ -118,6 +118,7 @@ void setup()
   server.on("/setWateringHour", setWateringHour);
   server.begin();
   timeClient.begin();
+  digitalWrite(ledPin, LOW);
 }
 
 void sendCommand(byte *command, WiFiClient *client)
@@ -195,22 +196,43 @@ void watering()
   }
   if (minute >= getPump1StartMinute() && minute < getPump2StartMinute())
   {
+    int state = digitalRead(pump1Pin);
+    if (state == HIGH)
+    {
+      delay(1000);
+      return;
+    }
     digitalWrite(pump1Pin, HIGH);
+
+    digitalWrite(ledPin, LOW);
     Serial.println("Watering pump 1 ON");
     return;
   }
   if (minute >= getPump2StartMinute() && minute < getPump2EndMinute())
   {
+    int state = digitalRead(pump2Pin);
+    if (state == HIGH)
+    {
+      delay(1000);
+      return;
+    }
     digitalWrite(pump1Pin, LOW);
     Serial.println("Watering pump 1 OFF");
     delay(1000);
     digitalWrite(pump2Pin, HIGH);
     Serial.println("Watering pump 2 ON");
+    digitalWrite(ledPin, HIGH);
     return;
   }
   if (minute >= getPump2EndMinute())
   {
-    digitalWrite(pump2Pin, LOW);
+    int state = digitalRead(pump2Pin);
+    if (state == HIGH)
+    {
+      delay(1000);
+      return;
+    }
+    digitalWrite(pump2Pin, HIGH);
     Serial.println("Watering pump 2 OFF");
     delay(1000);
     wateringRuns += 1;
@@ -313,10 +335,14 @@ void sendResponseToClient(char *executedAction)
 {
   int hour = timeClient.getHours();
   int minute = timeClient.getMinutes();
+  int pump1State = digitalRead(pump1Pin);
+  int pump2State = digitalRead(pump2Pin);
   String pageContent = "<ul style=\"font-size: 40Px;zoom: 200%;\"><li><a href =\"net\">NET</a></li><li><a href =\"tv\">TV</a></li><li><a href =\"off\">OFF</a></li><li><a href =\"tvoff\">TV OFF/ON</a></li><li><a href =\"source\">Change SOURCE</a></li><li> </li><li><a href =\"pumpOn?pumpId=1\">PUMP 1 ON</a></li><li><a href =\"pumpOn?pumpId=2\">PUMP 2 ON</a></li><li><a href =\"pumpOff?pumpId=1\">PUMP 1 OFF</a><li><a href =\"pumpOff?pumpId=2\">PUMP 2 OFF</a></li></ul>";
   pageContent = pageContent +
                 "<br><br>wateringHour: " + wateringHour + " " + wateringStartMinute +
-                "<br>waretringTimeInMinutes: " + waretringTimeInMinutes +
+                "<br>pump1 state: " + pump1State +
+                "<br>pump2 state: " + pump2State +
+                "<br>waretring Time In Minutes: " + waretringTimeInMinutes +
                 "<br>pump1StartMinute: " + getPump1StartMinute() +
                 "<br>pump2StartMinute: " + getPump2StartMinute() +
                 "<br>pump2EndMinute: " + getPump2EndMinute() +
