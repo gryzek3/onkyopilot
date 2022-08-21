@@ -44,18 +44,18 @@ const char *password = STAPSK;
 const char *host = STAONKOYOHOSTIP;
 const uint16_t port = 60128;
 
-const uint8_t ledPin = 2;    // GPIO 2 (D4)
-const uint8_t pump1Pin = 16; // GPIO 16  (D0)
-const uint8_t pump2Pin = 5;  // GPIO 5  (D1)
-IRsend irsend(4);            // GPIO 4 (D2)
+const uint8_t ledPin = 16;  // GPIO 16 (D0)
+const uint8_t pump1Pin = 0; // GPIO 0  (D3)
+const uint8_t pump2Pin = 5; // GPIO 5  (D1)
+IRsend irsend(4);           // GPIO 4 (D2)
 ESP8266WebServer server(80);
 
 const int utcOffsetInSeconds = 3600 * 2;
 WiFiUDP ntpUDP;
 NTPClient timeClient(ntpUDP, "pool.ntp.org", utcOffsetInSeconds, 45000);
-short wateringHour = 20;
+short wateringHour = 19;
 short wateringStartMinute = 40;
-const unsigned short waretringTimeInMinutes = 2;
+const unsigned short waretringTimeInMinutes = 1;
 
 unsigned short getPump1StartMinute()
 {
@@ -69,7 +69,18 @@ unsigned short getPump2EndMinute()
 {
   return wateringStartMinute + (2 * waretringTimeInMinutes);
 }
-
+unsigned short getPump2AfterEndMinute()
+{
+  return wateringStartMinute + (2 * waretringTimeInMinutes) + 1;
+}
+void ledOn()
+{
+  digitalWrite(ledPin, LOW);
+}
+void ledOff()
+{
+  digitalWrite(ledPin, HIGH);
+}
 unsigned long wateringRuns = 0;
 void setup()
 {
@@ -78,6 +89,7 @@ void setup()
   pinMode(pump2Pin, OUTPUT);
   digitalWrite(pump1Pin, LOW);
   digitalWrite(pump2Pin, LOW);
+  ledOn();
   Serial.begin(115200);
   irsend.begin();
   // We start by connecting to a WiFi network
@@ -103,7 +115,6 @@ void setup()
   Serial.println("WiFi connected");
   Serial.println("IP address: ");
   Serial.println(WiFi.localIP());
-  digitalWrite(ledPin, HIGH);
   server.on("/net", handle_net);
   server.on("/", handle_index);
   server.on("/tv", handle_tv);
@@ -118,7 +129,7 @@ void setup()
   server.on("/setWateringHour", setWateringHour);
   server.begin();
   timeClient.begin();
-  digitalWrite(ledPin, LOW);
+  ledOff();
 }
 
 void sendCommand(byte *command, WiFiClient *client)
@@ -158,7 +169,7 @@ void sendCommand(byte *command, WiFiClient *client)
 
 void sendDataToOnkyo(byte *fistCommand, byte *secondCommand, const char *text)
 {
-  digitalWrite(ledPin, LOW);
+  ledOn();
 
   Serial.print(text);
 
@@ -182,7 +193,7 @@ void sendDataToOnkyo(byte *fistCommand, byte *secondCommand, const char *text)
   // Close the connection
   client.stop();
   delay(1000);
-  digitalWrite(ledPin, HIGH);
+  ledOff();
 }
 void watering()
 {
@@ -204,7 +215,7 @@ void watering()
     }
     digitalWrite(pump1Pin, HIGH);
 
-    digitalWrite(ledPin, LOW);
+    ledOn();
     Serial.println("Watering pump 1 ON");
     return;
   }
@@ -221,20 +232,16 @@ void watering()
     delay(1000);
     digitalWrite(pump2Pin, HIGH);
     Serial.println("Watering pump 2 ON");
-    digitalWrite(ledPin, HIGH);
+    ledOn();
     return;
   }
-  if (minute >= getPump2EndMinute())
+  int pump2State = digitalRead(pump2Pin);
+  if (pump2State == HIGH && minute >= getPump2EndMinute())
   {
-    int state = digitalRead(pump2Pin);
-    if (state == HIGH)
-    {
-      delay(1000);
-      return;
-    }
-    digitalWrite(pump2Pin, HIGH);
+    digitalWrite(pump2Pin, LOW);
     Serial.println("Watering pump 2 OFF");
     delay(1000);
+    ledOff();
     wateringRuns += 1;
   }
 }
