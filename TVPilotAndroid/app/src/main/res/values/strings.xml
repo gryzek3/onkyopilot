@@ -11,4 +11,6 @@
     <string name="off">Off</string>
     <string name="volume_up">V Up</string>
     <string name="volume_down">V Down</string>
+    <string name="light">Light</string>
+    <string name="temperature">Temperature</string>
 </resources>

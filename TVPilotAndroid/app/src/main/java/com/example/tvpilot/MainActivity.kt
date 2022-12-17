@@ -2,9 +2,7 @@ package com.example.tvpilot
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.util.Log
 import android.widget.Toast
-import com.android.volley.RequestQueue
 import com.android.volley.toolbox.StringRequest
 import com.android.volley.toolbox.Volley
 
@@ -16,16 +14,27 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun buttonNetOnClick(view: android.view.View) {
-        sendMessage("net")
+        sendMessageToKitchen("net")
     }
 
-    private fun sendMessage(url: String){
-        var  queue = Volley.newRequestQueue(this)
-        val url = "http://192.168.0.106/$url"
+    private fun sendMessageToKitchen(query: String) {
+        val url = "http://192.168.0.106/$query"
+        sendMessage(url)
+    }
+    private fun sendMessageToBedroom(query: String) {
+        val url = "http://192.168.0.230/$query"
+        sendMessage(url, true)
+    }
+
+    private  fun sendMessage(url: String, readResponse: Boolean = false) {
 // Request a string response from the provided URL.
+        var  queue = Volley.newRequestQueue(this)
         val stringRequest = StringRequest(0, url,
             { response ->
-                val text = "Sent $url"
+                var text = "OK";
+                if(readResponse) {
+                    text = response;
+                }
                 val duration = Toast.LENGTH_SHORT
                 val toast = Toast.makeText(this, text, duration)
                 toast.show()
@@ -40,31 +49,35 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun buttonTvOnClick(view: android.view.View) {
-        sendMessage("tv")
+        sendMessageToKitchen("tv")
     }
     fun buttonTvOffOnClick(view: android.view.View) {
-        sendMessage("tvoff")
+        sendMessageToKitchen("tvoff")
     }
 
     fun buttonChangeTvSourceOnClick(view: android.view.View) {
-        sendMessage("source")
+        sendMessageToKitchen("source")
     }
 
     fun buttonAllOffOnClick(view: android.view.View) {
-        sendMessage("off")
+        sendMessageToKitchen("off")
     }
 
     fun buttonNetOffClick(view: android.view.View) {
-        sendMessage("netoff")
+        sendMessageToKitchen("netoff")
     }
 
     fun buttonNetVolUpClick(view: android.view.View) {
-        sendMessage("netvolup")
-
+        sendMessageToKitchen("netvolup")
     }
 
     fun buttonNetVolDownClick(view: android.view.View) {
-        sendMessage("netvoldown")
-
+        sendMessageToKitchen("netvoldown")
+    }
+    fun buttonLightClick(view: android.view.View) {
+        sendMessageToBedroom("light")
+    }
+    fun buttonTempClick(view: android.view.View) {
+        sendMessageToBedroom("temperature")
     }
 }

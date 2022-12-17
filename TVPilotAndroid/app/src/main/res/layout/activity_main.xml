@@ -11,7 +11,6 @@
         android:layout_height="match_parent">
 
 
-
         <TableRow
             android:layout_width="match_parent"
             android:layout_height="match_parent" >
@@ -36,13 +35,6 @@
                 android:layout_height="wrap_content"
                 android:onClick="buttonNetVolUpClick"
                 android:text="@string/volume_up" />
-
-            <Button
-                android:id="@+id/buttonAppNetVolDown"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:onClick="buttonNetVolDownClick"
-                android:text="@string/volume_down" />
 
         </TableRow>
 
@@ -73,16 +65,24 @@
                 android:text="@string/change_source"
                  />
         </TableRow>
+
         <TableRow
             android:layout_width="match_parent"
-            android:layout_height="match_parent" >
+            android:layout_height="match_parent">
 
             <Button
-                android:id="@+id/buttonAppALlOff"
+                android:id="@+id/buttonAppLight"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:onClick="buttonAllOffOnClick"
-                android:text="@string/off" />
+                android:onClick="buttonLightClick"
+                android:text="@string/light" />
+
+            <Button
+                android:id="@+id/buttonTemperature"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="buttonTempClick"
+                android:text="@string/temperature" />
         </TableRow>
 
     </TableLayout>
