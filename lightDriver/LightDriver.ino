@@ -91,6 +91,10 @@ void loop()
   {
     switchLight();
   }
+  else
+  {
+    digitalWrite(lightPin, isLightOn ? HIGH : LOW);
+  }
   server.handleClient();
 }
 
