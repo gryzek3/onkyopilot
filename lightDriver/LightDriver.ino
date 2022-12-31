@@ -87,6 +87,7 @@ void setup()
 }
 void loop()
 {
+  delay(500);
   if (digitalRead(touchPin) == HIGH || digitalRead(touchPin2) == HIGH)
   {
     switchLight();
