@@ -6,6 +6,7 @@
     <string name="net">NET</string>
     <string name="tv">TV</string>
     <string name="tv_off">TV Off</string>
+    <string name="tv_onl">TV Only</string>
     <string name="net_off">NET Off</string>
     <string name="change_source">Change Source</string>
     <string name="off">Off</string>

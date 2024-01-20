@@ -78,18 +78,13 @@
             android:layout_height="match_parent">
 
             <Button
-                android:id="@+id/buttonAppLight"
+                android:id="@+id/buttonAppTvOnly"
+                style="?android:attr/buttonBarButtonStyle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:onClick="buttonLightClick"
-                android:text="@string/light" style="?android:attr/buttonBarButtonStyle" />
+                android:onClick="buttonTvOffOnClick"
+                android:text="@string/tv_onl" />
 
-            <Button
-                android:id="@+id/buttonTemperature"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:onClick="buttonTempClick"
-                android:text="@string/temperature" style="?android:attr/buttonBarButtonStyle"  />
         </TableRow>
         <TableRow
             android:layout_width="match_parent"
